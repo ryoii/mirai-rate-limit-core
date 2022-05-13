@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.6.21"
-    application
+    id("me.him188.maven-central-publish") version "1.0.0-dev-3"
 }
 
 group = "cn.ryoii"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -29,6 +29,9 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-application {
-    mainClass.set("MainKt")
+mavenCentralPublish {
+    useCentralS01()
+
+    singleDevGithubProject("ryoii", projectName)
+    licenseFromGitHubProject("AGPL-3.0", "master")
 }
