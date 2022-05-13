@@ -4,7 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration
 
 /**
  * 令牌桶限流器实现
@@ -12,9 +12,10 @@ import kotlin.time.Duration.Companion.minutes
  * 根据 `limitPerMinute` 计算出每个令牌生成的时间间隔，通过间隔计算出每个请求进入时的可用令牌数。
  *
  * @param maxCache 最大令牌缓存数
- * @param limitPerMinute 平均每分钟限流数
+ * @param limiterPerDuration 平均每个单位时间限流数
+ * @param duration 单位时间
  */
-open class RateLimiter(maxCache: Int, limitPerMinute: Int) {
+open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duration) {
     private var stored: Int
     private val maxStored: Int
     private val interval: Long
@@ -24,7 +25,7 @@ open class RateLimiter(maxCache: Int, limitPerMinute: Int) {
     init {
         stored = 0
         maxStored = maxCache
-        interval = 1.minutes.div(limitPerMinute).inWholeMilliseconds
+        interval = duration.div(limiterPerDuration).inWholeMilliseconds
         nextTime = now()
     }
 
@@ -92,6 +93,7 @@ open class RateLimiter(maxCache: Int, limitPerMinute: Int) {
  */
 class FallBackRateLimit<M>(
     maxCache: Int,
-    limitPerMinute: Int,
+    limiterPerDuration: Int,
+    duration: Duration,
     val fallback: (suspend M.(String) -> Unit)?
-) : RateLimiter(maxCache, limitPerMinute)
+) : RateLimiter(maxCache, limiterPerDuration, duration)

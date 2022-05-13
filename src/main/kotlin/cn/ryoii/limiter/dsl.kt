@@ -4,6 +4,8 @@ import net.mamoe.mirai.event.Listener
 import net.mamoe.mirai.event.MessageDsl
 import net.mamoe.mirai.event.MessageSubscribersBuilder
 import net.mamoe.mirai.event.events.MessageEvent
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * 实例化一个限流器
@@ -20,7 +22,26 @@ fun <M : MessageEvent> MessageSubscribersBuilder<M, Listener<M>, Unit, Unit>.lim
     maxCache: Int = 1,
     limitPerMinute: Int,
     fallback: (suspend M.(String) -> Unit)? = null,
-): FallBackRateLimit<M> = FallBackRateLimit(maxCache, limitPerMinute, fallback)
+): FallBackRateLimit<M> = FallBackRateLimit(maxCache, limitPerMinute, 1.minutes, fallback)
+
+/**
+ * 实例化一个限流器
+ *
+ * 同一个限流器可以重复使用，使用同一个限流器的请求会被归类为同一组，共享限制的资源
+ *
+ * @param M 消息类型
+ * @param maxCache 限流器的最大缓存数量
+ * @param limitPerDuration 每个单位时间限流请求数量
+ * @param duration 单位时间
+ * @param fallback 限流器的默认降级处理
+ */
+@Suppress("unused")
+fun <M : MessageEvent> MessageSubscribersBuilder<M, Listener<M>, Unit, Unit>.limitWithDuration(
+    maxCache: Int = 1,
+    limitPerDuration: Int,
+    duration: Duration,
+    fallback: (suspend M.(String) -> Unit)? = null,
+): FallBackRateLimit<M> = FallBackRateLimit(maxCache, limitPerDuration, duration, fallback)
 
 /**
  * 可限流监听器
