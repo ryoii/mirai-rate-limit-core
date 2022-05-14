@@ -1,3 +1,3 @@
 
-rootProject.name = "mira-rate-limit-core"
+rootProject.name = "mirai-rate-limit-core"
 
