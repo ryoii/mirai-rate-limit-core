@@ -17,8 +17,8 @@ import kotlin.time.Duration
  */
 open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duration) {
     private var stored: Int
-    private val maxStored: Int
-    private val interval: Long
+    private var maxStored: Int
+    private var interval: Long
     private var nextTime: Long
     private val mutex = Mutex()
 
@@ -29,7 +29,19 @@ open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duratio
         nextTime = now()
     }
 
-    /***
+    suspend fun setMaxCache(maxCache: Int) {
+        this.mutex.lock()
+        this.maxStored = maxCache
+        this.mutex.unlock()
+    }
+
+    suspend fun setRate(limiterPerDuration: Int, duration: Duration) {
+        this.mutex.lock()
+        this.interval = duration.div(limiterPerDuration).inWholeMilliseconds
+        this.mutex.unlock()
+    }
+
+    /**
      * 尝试获取令牌，不会导致请求挂起
      *
      * @param count 一次获取的令牌数，获取多个令牌说明该请求占用更多的资源，在同一个分组中占用更大的比重
@@ -39,7 +51,7 @@ open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duratio
         return calWaitTime(count) == 0L
     }
 
-    /***
+    /**
      * 尝试获取令牌，当没有令牌可用时，会挂起直到获取令牌成功
      *
      * @param count 一次获取的令牌数，获取多个令牌说明该请求占用更多的资源，在同一个分组中占用更大的比重
