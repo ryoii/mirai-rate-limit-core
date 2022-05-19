@@ -48,7 +48,19 @@ open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duratio
      */
     suspend fun tryAcquire(count: Int): Boolean {
         check(count > 0) { "acquire count must be positive." }
-        return calWaitTime(count) == 0L
+        this.mutex.lock()
+        val nowMillis = now()
+        reSync(nowMillis)
+        val waitMillis = nextTime - nowMillis
+
+        return if (waitMillis <= 0) {
+            updateNextTime(count)
+            this.mutex.unlock()
+            true
+        } else {
+            this.mutex.unlock()
+            false
+        }
     }
 
     /**
@@ -58,7 +70,15 @@ open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duratio
      */
     suspend fun acquire(count: Int): Long {
         check(count > 0) { "acquire count must be positive." }
-        val waitMillis = calWaitTime(count)
+        this.mutex.lock()
+
+        val nowMillis = now()
+        reSync(nowMillis)
+        val waitMillis = max(nextTime - nowMillis, 0)
+        updateNextTime(count)
+
+        this.mutex.unlock()
+
         if (waitMillis > 0) {
             delay(waitMillis)
         }
@@ -66,18 +86,7 @@ open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duratio
         return waitMillis
     }
 
-    private suspend fun calWaitTime(count: Int): Long {
-        this.mutex.lock()
-        val nowMillis = now()
-        val momentAvailable = nextAvailableMoment(count, nowMillis)
-        this.mutex.unlock()
-        return max(momentAvailable - nowMillis, 0)
-    }
-
-    private fun nextAvailableMoment(count: Int, nowMillis: Long): Long {
-        reSync(nowMillis)
-        val returnVal = nextTime
-
+    private fun updateNextTime(count: Int) {
         val consumed = min(count, this.stored)
         val subsist = count - consumed
 
@@ -85,7 +94,6 @@ open class RateLimiter(maxCache: Int, limiterPerDuration: Int, duration: Duratio
         this.nextTime += waitTime
 
         this.stored -= consumed
-        return returnVal
     }
 
     private fun reSync(nowMillis: Long) {
