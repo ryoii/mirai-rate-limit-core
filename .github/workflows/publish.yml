@@ -1,0 +1,49 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      givenTag:
+        description: 'Release with Given Tag '
+        required: true
+        type: string
+
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  build:
+
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout with Given tag
+        uses: actions/checkout@v2
+        if: ${{ github.event.inputs.givenTag != null }}
+        with:
+          ref: ${{ github.event.inputs.givenTag }}
+
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Grant Permission
+        run: chmod u+x gradlew
+
+      - name: Check Publish Status
+        run: ./gradlew :checkMavenCentralPublication --info  --scan
+        env:
+          PUBLICATION_CREDENTIALS: ${{ secrets.PUBLICATION_CREDENTIALS  }}
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Publish
+        run: ./gradlew publish --info --scan
+        env:
+          PUBLICATION_CREDENTIALS: ${{ secrets.PUBLICATION_CREDENTIALS  }}
