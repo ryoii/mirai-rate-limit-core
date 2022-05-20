@@ -8,7 +8,7 @@
 
 > 令牌桶算法以固定速率生成令牌，每个被处理的请求需要先获取令牌。当无法获取令牌时，请求会被挂起或者降级返回，以达到限流的目的。
 >
-> 因为令牌桶可以缓存一定数量的令牌，因此针对缓存令牌数量内的请求，可以进行并发处理。而如果缓存设置为1，则可以以和令牌生成速率相同的速率处理请求。可以说相当灵活。
+> 因为令牌桶可以缓存一定数量的令牌，因此针对缓存令牌数量内的请求，可以进行并发处理。而如果缓存设置为0，则可以以和令牌生成速率相同的速率处理请求。可以说相当灵活。
 
 ## 使用方法
 
@@ -59,7 +59,7 @@ bot.eventChannel.subscribeMessages {
 
 ```kotlin
 bot.eventChannel.subscribeMessages {
-    val limiter = limitWith(maxCache = 1, limitPerMinute = 60)
+    val limiter = limitWith(maxCache = 0, limitPerMinute = 60)
     
     limit(case("ping"), limiter, fallback = {
         subject.sendMessage("Limited...")

@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.minutes
  */
 @Suppress("unused")
 fun <M : MessageEvent> MessageSubscribersBuilder<M, Listener<M>, Unit, Unit>.limitWith(
-    maxCache: Int = 1,
+    maxCache: Int = 0,
     limitPerMinute: Int,
     fallback: (suspend M.(String) -> Unit)? = null,
 ): FallBackRateLimit<M> = FallBackRateLimit(maxCache, limitPerMinute, 1.minutes, fallback)
@@ -37,7 +37,7 @@ fun <M : MessageEvent> MessageSubscribersBuilder<M, Listener<M>, Unit, Unit>.lim
  */
 @Suppress("unused")
 fun <M : MessageEvent> MessageSubscribersBuilder<M, Listener<M>, Unit, Unit>.limitWithDuration(
-    maxCache: Int = 1,
+    maxCache: Int = 0,
     limitPerDuration: Int,
     duration: Duration,
     fallback: (suspend M.(String) -> Unit)? = null,
