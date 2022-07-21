@@ -23,13 +23,13 @@ dependencies {
 ### 注册限流器
 
 ```kotlin
-// 注册缓存大小为1，以平均 60 请求/分钟进行限流，即 1 QPS
-val limiter = limitWith(maxCache = 1, limitPerMinute = 60)
+// 注册无缓存，以平均 60 请求/分钟进行限流，即 1 QPS
+val limiter = limitWith(maxCache = 0, limitPerMinute = 60)
 
 // 注册缓存大小为60，以平均 60 请求/分钟进行限流
 // 因为存在缓存，最大可以支持 60 QPS 并发
 // 但受限于令牌生成速率，1分钟内也只能处理 120 个请求
-val limiter = limitWith(maxCache = 1, limitPerMinute = 60)
+val limiter = limitWith(maxCache = 60, limitPerMinute = 60)
 ```
 
 ### 将限流器绑定到监听器上
